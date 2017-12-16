@@ -1,7 +1,7 @@
 ---
-title: "Assignment 3 - Part 1"
+title: "Assignment 3"
 author: "Tal Barami & Yair Ganon"
-date: "December, 2017"
+date: "December 2017"
 output: html_document
 ---
 
@@ -9,22 +9,82 @@ output: html_document
 
 ### Setting a working directory:
 ```{r}
-folder = 'C:\\Users\\Tal\\Documents\\GitHub\\Network-analysis\\Network-analysis\\part1'
+folder = 'C:\\Users\\Tal\\Documents\\GitHub\\Network-analysis\\Network-analysis\\part2'
 setwd(folder)
 
 knitr::opts_knit$set(root.dir = folder)
 ```
 
-### Install & load igraph:
+
+# Twitter API
+
+### Install and load the relevant packages:
+
 ```{r}
-#install.packages("igraph")
+#install.packages("twitteR")
+#install.packages("httr")
+#install.packages("base64enc")
+#install.packages("jsonlite")
+#install.packages("wordcloud")
+#install.packages("tm")
+# install.packages("igraph")
+
+library(twitteR)
+library(httr)
+library(jsonlite)
+library(wordcloud)
+library(tm)
 library(igraph)
 ```
 
+### Access using your twitterAuth.R file.
+```{r}
+source("resources\\twitterAuth.R")
+user <- setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+```
+
+### Search for the users who twitted #worldofwarcraft:
+```{r}
+search_result <- searchTwitter("#worldofwarcraft", 100)
+tags <- twListToDF(search_result)
+users <- tags$screenName
+df <- twListToDF(lookupUsers(users))
+```
+
+### Iterate over the dataframe, create edges between users based on _____?
+```{r}
+edge1 <- c()
+edge2 <- c()
+vertices <- c()
+for(i in 1:nrow(df)) {
+    user1 <- df[i,]
+    for(j in 1:nrow(df)){
+      user2 <- df[j,]
+      
+      if(user1$screenName != user2$screenName && user1$location == user2$location){
+        edge1 <- c(edge1, user1$screenName)
+        edge2 <- c(edge2, user2$screenName)
+      }
+    }
+    if(!(user1$screenName %in% vertices)){
+      vertices <- c(vertices, user1$screenName)
+    }
+}
+```
+
+### Save the result into edgelist.csv file:
+```{r}
+edgelist <- cbind(from=edge1, to=edge2)
+write.csv(edgelist, file="resources\\edgelist.csv", row.names = F)
+write.csv(vertices, file="resources\\data.csv", row.names = F)
+```
+
+# Repeat the steps from part 1:
+
 ### Load the data files & create the graph:
 ```{r}
-g.data <- read.csv('resources\\ga_edgelist.csv', header=TRUE, stringsAsFactors=FALSE)
-g.vrtx <- read.csv('resources\\ga_actors.csv', header=TRUE, stringsAsFactors=FALSE)
+g.data <- read.csv('resources\\edgelist.csv', header=TRUE, stringsAsFactors=FALSE)
+g.vrtx <- read.csv('resources\\data.csv', header=TRUE, stringsAsFactors=FALSE)
 g <- graph.data.frame(g.data, vertices=g.vrtx, directed=FALSE)
 
 plot(g, vertex.size = 4, vertex.label.dist = 2, asp = F)
