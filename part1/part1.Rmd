@@ -1,0 +1,132 @@
+---
+title: "Assignment 3 - Part 1"
+author: "Tal Barami & Yair Ganon"
+date: "December, 2017"
+output: html_document
+---
+
+### Getting started 
+
+# Setting a working directory:
+```{r}
+folder = 'C:\\Users\\Tal\\Dropbox\\Semester 7\\Application of Data Analysis Methods\\Assignments\\3\\part1'
+setwd(folder)
+
+knitr::opts_knit$set(root.dir = folder)
+```
+
+# Install & load igraph:
+```{r}
+#install.packages("igraph")
+library(igraph)
+```
+
+# Load the data files & create the graph:
+```{r}
+g.data <- read.csv('ga_edgelist.csv', header=TRUE, stringsAsFactors=FALSE)
+g.vrtx <- read.csv('ga_actors.csv', header=TRUE, stringsAsFactors=FALSE)
+g <- graph.data.frame(g.data, vertices=g.vrtx, directed=FALSE)
+
+plot(g, vertex.size = 4, vertex.label.dist = 2, asp = F)
+```
+### Q1a:
+
+# Find & plot the largest component:
+```{r}
+g.components <- components(g)
+largest_component <- which(g.components$membership == which.max(g.components$csize))
+g.largest_component <- induced_subgraph(g, largest_component)
+
+plot(g.largest_component, vertex.size = 4, vertex.label.dist = 2, asp = F)
+```
+
+#Calculate the betweenness centrality using the igraph method:
+Graph is not directed, without weights on the edges, no need to normalize the result.
+```{r}
+bc <- betweenness(g.largest_component, directed = FALSE, weights = NULL, normalized = FALSE)
+sort(bc, decreasing = T)[1:1]
+```
+
+#Calculate the closeness centrality using the igraph method:
+There are no weights on the edges, no need to normalize the result.
+```{r}
+cc <- closeness(g.largest_component, weights = NULL, normalized = FALSE)
+sort(cc, decreasing = T)[1:1]
+```
+
+# Finally, calculate the eigen centrality using the igraph method:
+Graph is not directed, without weights on the edges, we were asked for the real value, so no need to scale the result.
+```{r}
+ec <- eigen_centrality(g.largest_component, directed = FALSE, weights = NULL, scale = FALSE, options = arpack_defaults)$vector
+sort(ec, decreasing = T)[1:1]
+```
+
+## Results:
+#The character with the highest betweenness centrality is Sloan with 115.36667
+#The character with the highest closeness centrality is Torres with 0.01754386
+#The character with the highest eigen vector centrality is Karev with 0.5027688
+
+
+
+### Q1b:
+
+# 1. We'll use Girvan-Newman community detection:
+```{r}
+girvan_newman <-  edge.betweenness.community(g)
+girvan_newman
+```
+
+# Define a modularity measure that measures the quality of a network partition:
+```{r}
+#modularity for each phase of the previous algorithm
+girvan_newman$modularity
+#best modularity score
+max(girvan_newman$modularity)
+#index (phase, i.e. partitioning) with the best score
+which.max(girvan_newman$modularity)
+```
+
+## Grant each node a color defined by partitions, using the membership function that returns community ids for each vertex, according to our clustering model object:
+```{r}
+#Store cluster ids for each vertex
+gn_color <- membership(girvan_newman)
+head(gn_color)
+```
+
+# Then, set the node's color (vertex.color) accordingly:
+```{r}
+plot(g, vertex.size = 4, vertex.label.dist = 2, asp = F, vertex.color = gn_color)
+```
+
+## Results:
+# There are 7 communities: 1[8], 2[5], 3[5], 4[4], 5[3], 6[3], 7[4]
+# This algotithm yields modularity of: 0.5774221
+
+# 2. We'll use the fastgreedy community detection:
+```{r}
+g.simple <- simplify(g)
+fastgreedy <- fastgreedy.community(g.simple)
+```
+
+
+# Define a modularity measure that measures the quality of a network partition:
+```{r}
+fastgreedy$modularity
+max(fastgreedy$modularity)
+which.max(fastgreedy$modularity)
+```
+
+## Grant each node a color defined by partitions, using the membership function that returns community ids for each vertex, according to our clustering model object:
+```{r}
+fg_color <- membership(fastgreedy)
+head(fg_color)
+```
+
+# Then, set the node's color (vertex.color) accordingly:
+```{r}
+plot(g, vertex.size = 4, vertex.label.dist = 2, asp = F, vertex.color = fg_color)
+```
+
+## Results:
+# There are 6 communities: 1[10], 2[5], 3[4], 4[5], 5[5], 6[3]
+# This algotithm yields modularity of: 0.5947232
