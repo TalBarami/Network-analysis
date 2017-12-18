@@ -27,7 +27,7 @@ knitr::opts_knit$set(root.dir = folder)
 #install.packages("jsonlite")
 #install.packages("wordcloud")
 #install.packages("tm")
-# install.packages("igraph")
+#install.packages("igraph")
 
 library(twitteR)
 library(httr)

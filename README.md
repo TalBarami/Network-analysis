@@ -152,7 +152,7 @@ plot(g, vertex.size = 4, vertex.label.dist = 2, asp = F, vertex.color = fg_color
 #install.packages("jsonlite")
 #install.packages("wordcloud")
 #install.packages("tm")
-# install.packages("igraph")
+#install.packages("igraph")
 
 library(twitteR)
 library(httr)
